@@ -5,8 +5,8 @@ function runsim()
     I1 = 1.25*10^-3;
     I2 = 6.25*10^-4;
     I3 = 6.25*10^-4;
-    r = 0.02;
-    l = 0.03;
+    r = 0.03;
+    l = 0.0;
     g = 9.81;
 
     theta = pi/6;
@@ -17,13 +17,21 @@ function runsim()
     %q4 = x, q5 = y
 
     q = zeros(5,1);
-    q(2) = theta;
+    %q(2) = theta;
 
     % Generalized Speeds
 
     u = zeros(5,1);
-    u(1) = s+p*cos(theta);
-    u(3) = p*sin(theta);
+   % u(1) = s+p*cos(theta);
+   % u(3) = p*sin(theta);
+    
+    %Generalized forces
+    tau1 = 0;
+    tau2 = 0;
+    tau3 = -0.1;
+    f1 = 0;
+    f2 = 0;
+    f3 = 0;
     
     % Simulation Parameters
 
@@ -43,7 +51,8 @@ function runsim()
         [~, qtemp] = ode45(@(time,y) qdotfunc(y, u, r), tspan, q);
         
         
-        f = @(q, u) A(q(1),q(2),q(3),I1,I2,I3,M,l,r) \ b(q(1),q(2),q(3),u(1),u(2),u(3),I1,I2,I3,M,l,r,g);
+        f = @(q, u) A(q(1),q(2),q(3),I1,I2,I3, tau1, tau2, tau3, f1, f2, f3, M,l,r) \ ... 
+            b(q(1),q(2),q(3),u(1),u(2),u(3),I1,I2,I3, tau1, tau2, tau3, f1, f2, f3, M,l,r,g);
         
         [~, utemp] = ode45(@(t, y) f(q, y), tspan, u(1:3));
         
@@ -74,7 +83,9 @@ function runsim()
         cg3arr = [cg3arr cg(3)];
         p_ag = [cg(1) - q(4); cg(2) - q(5); cg(3)];
 
-
+        disp(q(3))
+        disp(q(4))
+       % disp(q(5))
 
 
         plot3([cg(1) cg(1)+bz(1)], [cg(2) cg(2)+bz(2)], [cg(3) cg(3)+bz(3)], 'k');
@@ -90,7 +101,7 @@ function runsim()
 
         time = time + STEP;
 
-        disp(time);
+        %disp(time);
 
     end
 end

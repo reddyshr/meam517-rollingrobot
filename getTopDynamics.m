@@ -4,7 +4,7 @@ function [A,b] = getTopDynamics()
 % a vector of the time derivatives of the generalized speeds. Since we are
 % only considering rolling, x = [u1_dot u2_dot u3_dot]
 
-    syms t q1 q2 q3 u1 u2 u3 u1_dot u2_dot u3_dot x_dot y_dot  l r M g tau f I1 I2 I3 real
+    syms t q1 q2 q3 u1 u2 u3 u1_dot u2_dot u3_dot x_dot y_dot tau1 tau2 tau3 f1 f2 f3 l r M g I1 I2 I3 real
 
     %% System Setup
 
@@ -46,8 +46,12 @@ function [A,b] = getTopDynamics()
     tau_vect_a = cross([1;0;0], r_pg_a);
     unit_tau_vect_a = tau_vect_a / norm(tau_vect_a);
     Tau_b = T'*((M*g*momentarm)*unit_tau_vect_a);
-
-    R_b = [0; 0; 0];
+    
+    Tau_applied_b = [tau1; tau2; tau3];
+    
+    Tau_b = Tau_b + Tau_applied_b;
+    
+    R_b = [f1; f2; f3];
 
     %Tau_b = [0; 0; 0];
     %R_b = T'*[-M*g; 0; 0];
@@ -95,7 +99,7 @@ function [A,b] = getTopDynamics()
     vars = [u1_dot, u2_dot, u3_dot];
 
     [A, b] = equationsToMatrix(eqns, vars);
-    matlabFunction(A, 'File', 'A', 'vars', [q1 q2 q3 I1 I2 I3 M l r]);
-    matlabFunction(b, 'File', 'b', 'vars', [q1 q2 q3 u1 u2 u3 I1 I2 I3 M l r g]);
+    matlabFunction(A, 'File', 'A', 'vars', [q1 q2 q3 I1 I2 I3 tau1 tau2 tau3 f1 f2 f3 M l r]);
+    matlabFunction(b, 'File', 'b', 'vars', [q1 q2 q3 u1 u2 u3 I1 I2 I3 tau1 tau2 tau3 f1 f2 f3 M l r g]);
 end
 
