@@ -1,0 +1,19 @@
+SHELL   := @SHELL@
+F77     := @F77@
+FC      := @F77@
+FFLAGS  := @FFLAGS@
+CFLAGS  := @CFLAGS@
+LDFLAGS := @LDFLAGS@
+
+AD_HOME := @AD_HOME@
+AD_OS   := @AD_OS@
+AD_LIB  := @AD_LIB@
+ADIFOR  := $(AD_HOME)/bin/Adifor
+PATH    := $(AD_HOME)/bin:$(PATH)
+
+BLAS               := -lblas
+
+DENSESNADIOPTLIBS  := ${LSNADIOPTLIBDIR} -lsnddiopt
+
+SPARSESNADIOPTLIBS := ${LSNADIOPTLIBDIR} -lsnsdiopt
+

@@ -1,0 +1,4 @@
+*.cmp *.A *.aux .*.f *.out
+banana cracking_oil manne snmain sntoy spring train hs47 AD_cache
+GNUmakefile g_*.f *_admain.f *.cmp *.adf *_submake
+*_dense_dispatch.f *_sparse_dispatch.f

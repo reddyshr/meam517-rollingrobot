@@ -1,0 +1,250 @@
+INSTALL.ALL                        Philip Gill      July 10, 2014
+                                Elizabeth Wong
+
+This  file contains  installation  instructions  for  the package
+SNOPT. For a  brief description of  this packages,
+see the accompanying README.FIRST file.
+
+ The installation  instructions that  follow assume that  you are
+installing on  a machine  that runs a  version of  the Unix-based
+operating  system, such  as  Linux, MacOSX,  SunOS  or IRIX.  For
+instructions on how to  install on alternative operating systems,
+please see the ALTERNATIVE OPERATING SYSTEMS section below.
+
+ For more information, go to
+    http://ccom.ucsd.edu/~optimizers
+
+
+THE BOTTOM LINE
+---------------
+
+ If  your system  has all  the necessary  prerequisites  (see the
+PREREQUISITES  section below)  the installation  process  will be
+quite simple. There is no  harm in trying the installation before
+you read  the PREREQUISITES  section. If the  installation fails,
+you will learn what is missing.
+
+ Those familiar with the  GNU installation process should find no
+surprises  here.  Use  the cd  command to  the  working directory
+$SNOPT containing  the SNOPT distribution.  At  the command line,
+type
+
+    ./configure
+    make
+    make install
+
+By default,  this package will attempt to install itself into the
+$SNOPT/lib   directory tree.
+
+
+ If you want to change the location of the installation, configure
+SNOPT with the prefix switch '--prefix' and specify the location.
+We  recommend that  you install in  $HOME/software  (the  pattern
+$HOME will be expanded to the full path of your  home directory).
+It is not  difficult to change the  location of the installation
+later.  You may install in $HOME/software by typing:
+
+    ./configure --prefix=$HOME/software
+    make
+    make install
+
+Other locations may be chosen  by setting the appropriate prefix.
+
+By default,  SNOPT will  compile the  Fortran library only.
+To enable C/C++ support, configure with:
+
+    ./configure --with-c-cpp   % for both languages
+    ./configure --with-c       % for C only
+    ./configure --with-cpp     % for C++ only
+
+Then choose one of the following:
+    make interface   % to build all enabled libraries
+    make c           % to build only the C interface
+    make cpp         % to build only the C++ interface
+
+Note that if using gfortran, the C/C++ support requires  gfortran
+4.4 or higher.
+
+
+To compile the  Matlab mex files,  specify the location of MATLAB
+with:
+
+    ./configure --with-matlab=/path/to/matlab
+
+ For example, if you are using  MacOSX 10.8  in  conjunction with
+Matlab R2012a, the appropriate command is
+
+    ./configure --with-matlab=/Applications/MATLAB_R2012a.app
+
+ The package f2c is included as part of the distribution.  f2c is
+neceessary  only  if you plan on configuring SNOPT with the older
+f2c'd version of SNOPT for C or C++ support.  Please use  the new
+version described above if possible.
+
+If already have f2c on your machine, specify its location with:
+
+    ./configure --with-f2c=/path/to/f2c
+
+Configure will check  /path/to/f2c/lib  and  /path/to/f2c/include
+for the f2c library and header files.
+
+You may also choose to disable f2c using the following:
+
+    ./configure --without-f2c
+
+
+
+ The current directory should  now contain a working distribution
+which may be  used immediately.  Try it out.  At the command line
+type:
+
+   cd examples
+   ./snmaina
+
+ Snopt should have solved a sample optimization problem for you.
+
+ If this didn't work,  read the PREREQUISITES and TROUBLESHOOTING
+sections. To learn how to install into a (more or less) permanent
+location, read the INSTALLATION LOCATION section.
+
+ If sections below suggest setting certain options before running
+configure,  you may  safety  run "configure"  followed by  "make"
+again.
+
+ A  more thorough test  involves the  solution of  22 precompiled
+sample  problems by  the user-callable  interfaces  snOptA, snOpt
+(aka snOptB),  snOptC, npOpt and sqOpt.  In  the snopt directory,
+type:
+
+    ./configure
+    make
+    make check
+
+This may  take a while.  Relax and  have a nice cup  of tea while
+you are waiting.  The log file  of a "make check" done on a Linux
+PC is provided  in the file "check.log0".  If  the generated file
+check.log  looks  very different  from  the  output  in the  file
+snopt/examples/check.log,   then  read   the   PREREQUISITES  and
+TROUBLESHOOTING sections. (Some of  the examples run by the "make
+check" have local solutions.   The results from your "make check"
+may vary.)
+
+
+PREREQUISITES
+-------------
+
+ To use the SNOPT package effectively, you need to have a working
+FORTRAN compiler.   The  configure  script  will  try to locate a
+FORTRAN compiler for you.   If it cannot find one,  or you do not
+like the one it chooses,  set the FC environment variable and run
+configure again.   In bash,  you set environment variables with a
+command like:
+
+           export FC=/path/to/compiler/fc
+           ./configure
+           make
+
+   Notice that there  are no spaces surrounding the  "=". In csh,
+   you set an environment variable with a command like
+
+           setenv F77 /the/correct/dir/f77
+
+   If you don't understand this, ask your system administrator.
+
+
+TROUBLESHOOTING
+---------------
+
+Read the PREREQUISITES section before you read this one.
+
+PROBLEM) "configure" didn't complete successfully.
+
+SOLUTION) This could  be a bug in our  configure script. However,
+    the   configure   script   is   designed  to   validate   the
+    configuration  of your  system, and  will stop  under certain
+    conditions  (for  instance,  if  the FORTRAN  compiler  can't
+    create executables.)
+
+
+PROBLEM) Typing "make" results in
+
+        "make: Fatal error: No arguments to build"
+
+    or some similar message.
+
+SOLUTION) The version of make  that you are using is probably not
+    GNU make.  Try typing "gmake" instead. If  that doesn't work,
+    then GNU  make is not  installed. See PREREQUISITES  for more
+    information.
+
+
+PROBLEM) Typing "make" results in
+    ./lib/libsnopt.so: undefined reference to `etime_'
+
+SOLUTION) your FORTRAN libraries do not appear to have the timing
+     routine etime on your  system.  Edit the subroutine s1cpu in
+     file snopt/src/sn10mach.f  to either switch  off all timing,
+     or to call an alternative system timer.
+
+
+PROBLEM) The  example program compiles  (and links) successfully,
+    but the "make check" command does not work correctly.
+
+SOLUTION)   It   may   be    necessary   to   modify   the   file
+    snopt/src/sn10mach.f,  which  contains the  machine-dependent
+    subroutines:
+
+    Subr.        Function
+    ------       --------
+
+    s1cpu      Calls the f77 timer etime by default.
+               This routine can be modified to either switch
+               off all timing, or to call an alternative
+               system timer.  There is timer support for:
+               Solaris; Irix; AIX;
+               Gnu g77, NagWare f95 and Absoft f77;
+               WinNT with DEC F90; PC Lahey Fortran;
+               DEC OpenVMS; DEC VAX/VMS with C runtime library.
+
+    s1open     Opens files used by SNOPT.
+               The shell script examples/runLP uses default
+               fortran logical file names of the form "fort.x".
+               s1file must be changed if this is not the
+               default for your system.
+
+    It is VERY UNLIKELY that any of the following files will
+    need to be modified:
+
+    s1eps      Sets the machine precision.
+    s1flmx     Sets the largest floating-point number.
+    s1flmn     Sets the smallest floating-point number.
+    s1intmx    Sets the largest positive integer.
+
+    s1inpt     Sets the Fortran standard input
+    s1outpt    Sets the Fortran standard output
+
+    The  distributed versions  of  s1eps, s1flmx  and s1flmn  are
+    defined for IEEE standard  arithmetic. s1mxint assumes 32 bit
+    integers.
+
+    s1clos     Closes a file.
+    s1envt     Defines the environment in which SNOPT is
+               being used (currently empty).
+    s1page     Produces optional page throw in printed output.
+
+
+PROBLEM) One or two of  the problems attempted by "make check" do
+    not work.
+
+SOLUTION)  The  problem  is  most  likely  with  the  flags  that
+    determine the level of  Fortran compiler optimization. If the
+    level is too high, you may see inconsistent results.
+
+
+
+ALTERNATIVE OPERATING SYSTEMS
+-----------------------------
+
+ The  FORTRAN code  used in  this  package and  the FORTRAN  code
+generated  by  SNOPT   is  reasonably  close to  the  FORTRAN  77
+standard, and  should compile on  most platforms.

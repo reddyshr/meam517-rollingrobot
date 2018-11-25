@@ -1,0 +1,273 @@
+September 28, 1999.
+February  24, 2005.
+
+Frequently Asked Questions about SNOPT
+--------------------------------------
+
+   Q1.  What is the largest number of variables and constraints that
+        SNOPT can handle?
+
+   A1.  The  most  important  item  is  the "number  of  degrees  of
+        freedom" at  the solution.  An optimal basic  solution for a
+        linear program has 0 degrees of freedom.  This is ideal: the
+        solution is at a vertex of the constraint set.  (We can take
+        the constraints to  be Ax = b,  l <= x <= u  without loss of
+        generality, where A has m rows and n columns, m < n.)  There
+        will be m basic  variables with values between their bounds,
+        and n-m  nonbasic variables that  are equal to one  of their
+        bounds.
+
+        A nonlinear program will have some of the nonbasic variables
+        strictly  between  their bounds.   We  call them  superbasic
+        variables, and they measure the number of degrees of freedom
+        (or the distance from a vertex).
+
+        SNOPT is  "happy" if the  number of superbasic  variables is
+        not more than a few hundred, because it prefers to work with
+        a dense triangular  matrix of that size.  Even  2000 is fine
+        -- they just slow down  accordingly.  Subject to that, m and
+        n can both be quite large -- say 50,000 (but not millions!).
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q2.  If  I attempt to  solve my  problem using  SNOPT, I  get the
+        error message: EXIT -- the current point cannot be improved.
+        It there a bug in SNOPT?
+
+   A2.  This type of error is almost always caused by a problem with
+        the model or calling subroutine.  There are three steps that
+        should be followed if this error occurs:
+
+    (a) Check your  main program using some  fortran syntax checker.
+        I strongly  recommend FTNCHEK which is in  the public domain
+        and  can  be  downloaded  from  various  sites.   See  e.g.,
+        http://www.dsm.fordham.edu/~ftnchek, I never  run a new code
+        without using FTNCHEK first.  It has saved me many months of
+        painful debugging.
+
+    (b) If step (a) shows that your code is clean, try running SNOPT
+        with the option ``Verify level 3''. This will check that you
+        have coded the derivatives correctly.
+
+    (c) Check  that  your model  is  smooth.   Nonsmoothness can  be
+        caused by computing the  problems functions with an adaptive
+        or inaccurate iterative process (e.g., a ode or pde solver).
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q3.  How can I make SNOPT take less computer time?
+
+   A3.  The default values of  the optional parameters are chosen to
+        provide maximum robustness.  These choices often cause SNOPT
+        to take  more computer  time on easy-to-solve  problems.  In
+        many cases it is possible to reduce the time needed to solve
+        a problem  by carefully choosing the  optional parameters to
+        match the problem being solved.
+
+        Two parameters  that often influence run time  are the crash
+        option and the number of limited memory Hessian updates.
+
+        The  best values for  these parameters  will vary  with each
+        problem, but  the following values often  make problems with
+        easy-to-moderate difficulty solve more quickly.
+
+	Crash option       3
+        Hessian updates    5
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q4.  Why does SNOPT sometimes do one or two minor iterations when
+	my problem only has equality constraints?
+
+   A4.  If   the   equations    for   the   search   direction   are
+        ill-conditioned, an  iterative refinement scheme  is used to
+        improve the  accuracy.  The iterative  refinement iterations
+        are counted as minor iterations.
+
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q5.  I  have installed SNOPT  on a DEC  Alpha as directed  in the
+	README.install file.  However,  when running the tests, some
+	of the  problems fail  to converge or  get the  wrong answer
+	when I  run through the  standard cases.  Can you  offer any
+	advice?
+
+   A5.  The problem  is most likely with the  options that determine
+	the  level of  compiler optimization.  If the  level  is too
+	high, you  may see  inconsistent results.  For  example, the
+	following  options do and  do not  work for  SNOPT on  a DEC
+	Alpha:
+
+	  Worked:  -fast -O4 -tune host -inline all
+	  Failed:  -fast -O5 -tune host -inline all
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q6.  I  am using a  parameter estimation problem with  SNOPT.  In
+	this type of problem  the objective and constraints are both
+	functions  of  a  complicated vector-valued  function  v(x).
+	SNOPT requires the objective  and constraint functions to be
+	defined  in  two   separate  subroutines.   Although  it  is
+	possible to compute the problem functions separately or pass
+	information using  the user workspace parameters  cu, iu and
+	ru, ,  this is either  very complicated or expensive  in cpu
+	time.  Is   it  possible   to  compute  the   objective  and
+	constraints at the same time?
+
+   A6.  The distribution for SNOPT includes a subroutine SNOPTC that
+	is  equivalent  to  SNOPT  except  that  the  objective  and
+	constraint functions can be computed in the same subroutine.
+
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q7.  I have just implemented a test version of my code, and I get
+	the error message: 21 EXIT  -- error in basis package.  What
+	am I doing wrong?
+
+   A7.  This error  is usually caused by an  error in the definition
+	of the input arrays a(*), ha(*), and ka(*).
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q8.  The derivatives  for my problem are very  expensive and so I
+	use  the option ``Nonderivative  linesearch'' to  reduce the
+	number of  times the derivatives are  calculated. However, I
+	notice  that the number  of derivative  calculations doesn't
+	seem to be any smaller.  Why is this so?
+
+   A8.  Two things  need to be done when  using a nonderivative line
+	search.  First,  the option ``Nonderivative  linesearch'' be
+	set.  Second, the  user  must skip  the  computation of  the
+	derivatives in  funcon and funobj when SNOPT  sets the input
+	variable mode = 0.
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q9.   I  am using  SNOPT  to optimize  a  model  that requires  a
+	significant  amount   of  work  to   compute  the  objective
+	gradient.  In testing various  scenarios, I would like to be
+	able to fix some of the variables for a particular run.
+
+	My  question is  the following:  do  I have  to provide  the
+	derivatives of  the objective  function with respect  to the
+	fixed variables, or can I  simply use a dummy value for this
+	gradient?  Computing  the fixed gradients  exactly will mean
+	considerable extra computation.
+
+	Of course, I can always discard the fixed variables from the
+	problem given  to SNOPT, but this  will mean I  will need to
+	change the problem functions for each run.
+
+   A9.  You can fix the jth variable at the value const by including
+	the constraint bl(j) = bu(j) = const.  If you assign a dummy
+	value to gObj(j), it should not make any difference to the
+	run, except that the reduced costs (i.e., Lagrange
+	multipliers) for any fixed variables will be meaningless.
+
+	If you leave the gradient undefined (i.e., you don't set the
+	components of gObj associated with the fixed variables) then
+	SNOPT will compute them by finite differences: gObj(j) =
+	(fObjJ - fObj)/delta, where fObjJ is fObj evaluated at the
+	perturbed point x + e_j delta.  I assume that you DON'T want
+	to do this!
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q10. SNOPT makes  no progress and  fails with the  error message:
+        "EXIT -- the current point cannot be improved".  I can solve
+        this problem successfully with another code.  Is there a bug
+        in SNOPT?
+
+   A10. This is most likely an error in the way that the constraints
+        are defined.  First, check  the derivatives using the option
+        "Verify level 3".  If  the derivatives appear to be correct,
+        take the solution found by the other program and make it the
+        initial point for  an SNOPT run.  If the  problem is defined
+        correctly,  SNOPT  should   terminate  successfully  at  the
+        initial point.  (A number  of minor iterations may be needed
+        to  identify the  correct  basis, but  the  number of  major
+        iterations should  never be more  than 1 or 2,  depending on
+        the accuracy of your solution).  If SNOPT does a significant
+        number of  major iterations, the problems solved  by the two
+        codes are probably not the same.
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q11. I am  using SNOPT  for the first  time and it  keeps failing
+        with "EXIT -- too many iterations", even though I have set a
+        very large  iteration limit set  in the options  file.  What
+        can I do?
+
+   A11. If  you defined  your main  program by  editing  the example
+        program  snmain.f, check  that  the iteration  limit is  not
+        hardwired  to the  small value  appropriate for  the example
+        problem.
+
+        The iteration limit defined in  the source file is set AFTER
+        the limit has  been read from the specs  file.  This implies
+        that the smaller value overrides the larger one.
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q12. Why does SNOPT  perform minor iterations on an unconstrained
+        problem?
+
+        The  QP  subproblem  sometimes  does  more  than  one  minor
+        iteration for each each major iteration.  I had assumed that
+        minor iterations are only possible when there are inequality
+        constraints.
+
+   A13. SNOPT starts the first  QP with all variables fixed at their
+        initial values.   These are known as  "temporary bounds", or
+        "temporary  constraints".  The first  QP will  perform minor
+        iterations  as these  variables are  allowed to  change from
+        their initial values.
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   Q14. The  description  of  SNOPT  says the  function  should  be
+        smooth. My function is  not actually smooth because for some
+        combinations of parameters the objective function I optimize
+        cannot be computed numerically.  Because this restriction is
+        very  difficult to  define in  terms  of the  bounds on  the
+        parameters, I  just set the  objective function to  some big
+        value if  the numerical failure occurs.  Do  you think SNOPT
+        will work for my function?
+
+   A14. SNOPT has a feature that allows the user to "reject" a point
+        proposed  by  the optimization  method  during the  solution
+        process.  The method  then tries to back away  from this bad
+        point.  Of course, this can only work if you give an initial
+        point that is not in the bad region.
+
+        This  strategy  usually works  okay  if  the  bad region  is
+        sufficiently isolated from the solution.  For example, users
+        with optimization  problems that involve the  solution of an
+        ordinary differential equation  (ODE) often use this feature
+        to stay clear of regions where the ODE is not well-defined.
+
+        However,  if your  solution is  on the  BOUNDARY of  the bad
+        region,  then  there is  little  that  can  be done.  It  is
+        difficult to think of ANY method that would work reliably in
+        this situation.
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SNOPT FAQ maintained by:
+
+Philip E. Gill
+
+Office:   858-534-4879 (voice mail)
+Fax:      858-534-5273
+email:    pgill@ucsd.edu
+          na.pgill@na-net.ornl.gov
+URL:      http://www.cam.ucsd.edu/~peg
+
+------------------------------------------
+Department of Mathematics
+University of California, San Diego
+9500 Gilman Drive, # 0112
+La Jolla, CA 92093-0112
+------------------------------------------

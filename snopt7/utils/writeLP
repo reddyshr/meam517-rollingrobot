@@ -1,0 +1,39 @@
+#! /bin/csh -f
+
+ set PROBSDIR="$HOME/fortran/problems"
+ set RUNS = $1
+
+ cat bgdbg1.out		\
+     bgetam.out		\
+     bgprtr.out		\
+     box1.out		\
+     ceria3d.out	\
+     chemcom.out	\
+     cplex1.out		\
+     cplex2.out		\
+     ex72a.out		\
+     ex73a.out		\
+     forest6.out	\
+     galenet.out	\
+     gran.out		\
+     greenbeai.out	\
+     itest2.out		\
+     itest6.out		\
+     klein1.out		\
+     klein2.out		\
+     klein3.out		\
+     mondou2.out	\
+     pang.out		\
+     pilot4i.out	\
+     qual.out		\
+     reactor.out	\
+     refinery.out	\
+     vol1.out		\
+     woodinfe.out	>  $RUNS.out
+ $PROBSDIR/statsLP.com   $RUNS
+
+# \rm  $RUNS.out  >& /dev/null
+
+
+
+

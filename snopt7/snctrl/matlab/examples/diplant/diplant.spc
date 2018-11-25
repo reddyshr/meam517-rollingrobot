@@ -1,0 +1,15 @@
+Begin Control -- optimal control problem
+
+   Discretization                  TR
+   Control Solution               Yes
+
+   Derivative option                1
+   Superbasics limit             2000
+
+   Major iterations              1000
+   Major Print level           000001
+   Minor print level                1
+
+   Solution                       Yes
+
+End   Control

@@ -1,0 +1,12 @@
+2007-09-01  Philip E. Gill  <peg@ljna2.newmind.com>
+
+	* snoptcmex.c:               Sticky options added
+
+2007-06-18  Philip E. Gill  <peg@ljna2>
+
+	* snoptcmex.c:               Added snget, sngeti and sngetr.
+
+2006-05-07  Philip E. Gill  <peg@ljna2.newmind.com>
+
+	* snoptcmex.c (mexFunction): All input/output routines written in C.
+

@@ -1,0 +1,137 @@
+#-----------------------------------------------------------------------
+# Submakefile :: f2c
+#-----------------------------------------------------------------------
+
+F2CLIBS      = libf2c
+F2CLIBS_LA   = $(F2CLIBS:%=$(LIBDIR)/%.la)
+F2CLIBS_A    = $(F2CLIBS:%=$(libdir)/%.a)
+F2CLIBS_INS  = $(F2CLIBS:%=$(libdir)/%.la)
+F2C_LIBS     = $(F2CLIBS_LA)
+
+MISC     = f77vers i77vers main s_rnge abort_ exit_ getarg_ iargc_ \
+           getenv_ signal_ s_stop s_paus system_ cabs ctype \
+           derf_ derfc_ erf_ erfc_ sig_die uninit
+POW      = pow_ci pow_dd pow_di pow_hh pow_ii pow_ri pow_zi pow_zz
+CX       = c_abs c_cos c_div c_exp c_log c_sin c_sqrt
+DCX      = z_abs z_cos z_div z_exp z_log z_sin z_sqrt
+REAL     = r_abs r_acos r_asin r_atan r_atn2 r_cnjg r_cos \
+	   r_cosh r_dim r_exp r_imag r_int \
+           r_lg10 r_log r_mod r_nint r_sign \
+           r_sin r_sinh r_sqrt r_tan r_tanh
+DBL      = d_abs d_acos d_asin d_atan d_atn2 \
+	   d_cnjg d_cos d_cosh d_dim d_exp \
+	   d_imag d_int d_lg10 d_log d_mod \
+	   d_nint d_prod d_sign d_sin d_sinh \
+	   d_sqrt d_tan d_tanh
+INT      = i_abs i_dim i_dnnt i_indx i_len i_mod i_nint i_sign \
+	   lbitbits lbitshft
+HALF     = h_abs h_dim h_dnnt h_indx h_len h_mod h_nint h_sign
+CMP      = l_ge l_gt l_le l_lt hl_ge hl_gt hl_le hl_lt
+EFL      = ef1asc_ ef1cmc_
+CHAR     = f77_aloc s_cat s_cmp s_copy
+I77      = backspac close dfe dolio due endfile err \
+           fmt fmtlib ftell_ iio ilnw inquire lread lwrite \
+           open rdfmt rewind rsfe rsli rsne sfe sue \
+           typesize uio util wref wrtfmt wsfe wsle wsne xwsne
+QINT     = pow_qq qbitbits qbitshft ftell64_
+TIME     = dtime_ etime_
+
+F2CFILES = $(MISC) $(POW) $(CX) $(DCX) $(REAL) $(DBL) $(INT) \
+           $(HALF) $(CMP) $(EFL) $(CHAR) $(I77) $(TIME)
+F2C_LO   = $(F2CFILES:%=$(F2CL_OBJDIR)/%.lo)
+F2C_O    = $(F2CFILES:%=$(F2CL_OBJDIR)/%.o)
+
+OBJECTS  = main init gram lex proc equiv data format \
+           expr exec intr io misc error mem names \
+           output p1output pread put putpcc vax formatdata \
+           parse_args niceprintf cds sysdep version
+OBJS_LO  = $(OBJECTS:%=$(F2C_OBJDIR)/%.lo)
+OBJS_O   = $(OBJECTS:%=$(F2C_OBJDIR)/%.o)
+
+INC_FILE = f2c arith signal1 sysdep1
+F2C_INCS = $(INC_FILE:%=$(INCDIR)/%.h) $(INCDIR)/sysdep.hd
+F2C_DIRS = $(F2CL_OBJDIR) $(F2C_OBJDIR) bin_dir $(INCDIR) $(LIBDIR)
+
+#-----------------------------------------------------------------------
+
+all: all_f2c
+install: install_f2c
+uninstall: uninstall_f2c
+clean: clean_f2c
+veryclean: veryclean_f2c
+distclean: distclean_f2c
+
+#-----------------------------------------------------------------------
+
+all_f2c: $(F2C_DIRS) $(F2C_INCS) $(F2CLIBS_LA) $(BINDIR)/f2c
+
+$(F2C_DIR):
+	if [ ! -d $(F2C_DIR) ]; then mkdir $@; fi
+
+$(F2CL_OBJDIR): $(F2C_DIR)
+	if [ ! -d $(F2CL_OBJDIR) ]; then mkdir $@; fi
+
+$(F2C_OBJDIR): $(F2C_DIR)
+	if [ ! -d $(F2C_OBJDIR) ]; then mkdir $@; fi
+
+install_f2c: all_f2c
+	$(INSTALL_LIB) $(F2CLIBS_LA) $(libdir)
+	$(FINISH) $(libdir)
+
+uninstall_f2c:
+	$(UNINSTALL) rm -f $(F2CLIBS_INS)
+
+#-----------------------------------------------------------------------
+
+$(BINDIR)/f2c: $(OBJS_LO) bin_dir
+	$(LINK_C) $(LDFLAGS) $(OBJS_LO) -o $@
+
+$(LIBDIR)/libf2c.la: $(F2C_LO)
+	$(LINK_F) $(FCFLAGS) -o $@ $(F2C_LO) -rpath $(libdir)
+
+$(INCDIR)/f2c.h:
+	cp $(F2CL_SRCDIR)/f2c.h0 $@
+
+$(INCDIR)/arith.h: $(F2CL_SRCDIR)/arithchk.c
+	$(CC) $(CFLAGS) -DNO_FPINIT $^ -lm ||\
+	$(CC) -DNO_LONG_LONG $(CFLAGS) -DNO_FPINIT $^ -lm
+	./a.out > $@
+	rm -f a.out arithchk.o
+
+$(INCDIR)/signal1.h:
+	cp $(F2CL_SRCDIR)/signal1.h0 $@
+
+$(INCDIR)/sysdep1.h:
+	cp $(F2CL_SRCDIR)/sysdep1.h0 $@
+
+$(INCDIR)/sysdep.hd:
+	if $(CC) $(F2C_SRCDIR)/sysdeptest.c; then echo '/*OK*/' > $@;\
+	elif $(CC) -DNO_MKDTEMP $(F2C_SRCDIR)/sysdeptest.c; then echo '#define NO_MKDTEMP' > $@;\
+	else echo '#define NO_MKDTEMP' > $@; echo '#define NO_MKSTEMP' >> $@; fi
+	rm -f a.out
+
+#-----------------------------------------------------------------------
+
+$(F2C_OBJDIR)/%.lo: $(F2C_SRCDIR)/%.c
+	$(COMPILE_C) $(CFLAGS) -I$(INCDIR) -c $< -o $@
+
+$(F2CL_OBJDIR)/%.lo: $(F2CL_SRCDIR)/%.c
+	$(COMPILE_C) $(CFLAGS) -I$(INCDIR) -c $< -o $@
+
+#-----------------------------------------------------------------------
+
+clean_f2c:
+	$(CLEAN) rm -f $(F2C_OBJDIR)/*.lo
+	$(CLEAN) rm -f $(F2CL_OBJDIR)/*.lo
+
+veryclean_f2c: clean_f2c
+	$(CLEAN) rm -f $(F2CLIBS_LA)
+	$(CLEAN) rm -f $(BINDIR)/f2c
+	$(CLEAN) rm -f $(F2C_INCS)
+
+distclean_f2c: veryclean_f2c
+
+#-----------------------------------------------------------------------
+
+.PHONY: all_f2c install_f2c uninstall_f2c \
+        clean_f2c veryclean_f2c distclean_f2c

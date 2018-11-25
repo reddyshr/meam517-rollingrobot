@@ -1,9 +1,9 @@
-function gen_f(mass, len, radius, grav, moi1, moi2, moi3)
+function [dhi_dx, dhi_dxp1, dhi_du, dhi_dup1] = gen_f(mass, len, radius, grav, moi1, moi2, moi3)
 
     % state = [q1 q2 q3 q4 q5 u1 u2 u3]
     
     syms t q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3 l r M g I1 I2 I3 real
-  %  syms q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1 dt real
+    syms q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1 dt real
     
     s1 = sin(q1);
     s2 = sin(q2);
@@ -29,41 +29,63 @@ function gen_f(mass, len, radius, grav, moi1, moi2, moi3)
     f(7) = udot(2);
     f(8) = udot(3);
     
-    f = subs(f, [M, l, r, g, I1, I2, I3], [mass, len, radius, grav, moi1, moi2, moi3]);
+    %f = subs(f, [M, l, r, g, I1, I2, I3], [mass, len, radius, grav, moi1, moi2, moi3]);
     
-    matlabFunction(f, 'File', 'F', 'vars', [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3]);
+ %   matlabFunction(f, 'File', 'F', 'vars', [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3 M l r g I1 I2 I3]);
     
 %     df_dx = simplify(jacobian(f, [q1 q2 q3 q4 q5 u1 u2 u3]), 'Steps', 250);
 %     
 %     df_du = simplify(jacobian(f, [tau1 tau2 tau3 f1 f2 f3]), 'Steps', 250);
 %     
 % 
-%     x_i = [q1 q2 q3 q4 q5 u1 u2 u3]';
-%     x_ip1 = [q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1]';
-%     u_i = [tau1 tau2 tau3 f1 f2 f3]';
-%     u_ip1 = [tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1]';
-%     f_ip1 = subs(f, [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3], [q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1]);
+    x_i = [q1 q2 q3 q4 q5 u1 u2 u3]';
+    x_ip1 = [q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1]';
+    u_i = [tau1 tau2 tau3 f1 f2 f3]';
+    u_ip1 = [tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1]';
+    f_ip1 = subs(f, [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3], [q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1]);
+    
+    x_iphalf = 0.5*(x_i + x_ip1) - (dt/8)*(f_ip1 - f);
+    u_iphalf = 0.5*(u_i + u_ip1);
 %     
-%     x_iphalf = 0.5*(x_i + x_ip1) - (dt/8)*(f_ip1 - f);
-%     u_iphalf = 0.5*(u_i + u_ip1);
 %     
 %     
-%     
-%     fphalf = subs(f, [q1, q2, q3, q4, q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3], ... 
-%                      [x_iphalf(1), x_iphalf(2), x_iphalf(3), x_iphalf(4), ... 
-%                       x_iphalf(5), x_iphalf(6), x_iphalf(7), x_iphalf(8), ...
-%                       u_iphalf(1), u_iphalf(2), u_iphalf(3), u_iphalf(4), ...
-%                       u_iphalf(5), u_iphalf(6)]);
-%                   
-%     h_i = (3/(2*dt))*(x_ip1 - x_i) - 0.25*(f + f_ip1) - fphalf;
-%     
-%     dhi_dx = jacobian(h_i, [q1 q2 q3 q4 q5 u1 u2 u3]);
-%     
-%     dhi_dx1p = jacobian(h_i, [q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1]);
-%     
-%     dhi_du = jacobian(h_i, [tau1 tau2 tau3 f1 f2 f3]);
-%     
-%     dhi_du1p = jacobian(h_i, [q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1]);
+    fphalf = subs(f, [q1, q2, q3, q4, q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3], ... 
+                     [x_iphalf(1), x_iphalf(2), x_iphalf(3), x_iphalf(4), ... 
+                      x_iphalf(5), x_iphalf(6), x_iphalf(7), x_iphalf(8), ...
+                      u_iphalf(1), u_iphalf(2), u_iphalf(3), u_iphalf(4), ...
+                      u_iphalf(5), u_iphalf(6)]);
+                  
+    h_i = (3/(2*dt))*(x_ip1 - x_i) - 0.25*(f + f_ip1) - fphalf;
+    
+    dhi_dx = jacobian(h_i, [q1 q2 q3 q4 q5 u1 u2 u3]);
+    
+    dhi_dxp1 = jacobian(h_i, [q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1]);
+    
+    dhi_du = jacobian(h_i, [tau1 tau2 tau3 f1 f2 f3]);
+    
+    dhi_dup1 = jacobian(h_i, [tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1]);
+    
+%     for i = 1:8
+%         for j = 1:8
+%             disp([i j]);
+%             if (j <= 6)
+%                 matlabFunction(dhi_du(i,j), 'File', strcat('dhi_du_', num2str(i), '_', num2str(j)), 'vars', ... 
+%                             [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3 ...
+%                              q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1 dt M l r g I1 I2 I3]);
+%                          
+%                 matlabFunction(dhi_dup1(i,j), 'File', strcat('dhi_dup1_', num2str(i), '_', num2str(j)), 'vars', ... 
+%                             [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3 ...
+%                              q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1 dt M l r g I1 I2 I3]);
+%             end
+%              matlabFunction(dhi_dx(i,j), 'File', strcat('dhi_dx_', num2str(i), '_', num2str(j)), 'vars', ... 
+%                             [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3 ...
+%                              q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1 dt M l r g I1 I2 I3]);
+%                          
+%              matlabFunction(dhi_dxp1(i,j), 'File', strcat('dhi_dxp1_', num2str(i), '_', num2str(j)), 'vars', ... 
+%                             [q1 q2 q3 q4 q5 u1 u2 u3 tau1 tau2 tau3 f1 f2 f3 ...
+%                              q1p1 q2p1 q3p1 q4p1 q5p1 u1p1 u2p1 u3p1 tau1p1 tau2p1 tau3p1 f1p1 f2p1 f3p1 dt M l r g I1 I2 I3]);
+%         end      
+%     end
 %                   
 %     dfphalf_dx = jacobian(fphalf, [q1 q2 q3 q4 q5 u1 u2 u3]);
 %     dfphalf_du = jacobian(fphalf, [tau1 tau2 tau3 f1 f2 f3]);

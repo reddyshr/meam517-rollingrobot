@@ -1,0 +1,188 @@
+PERL          = @PERL@
+
+LIBSNDDIOPT_SO = $(LIBDIR)/libsnddiopt.so
+LIBSNDDIOPT_A  = $(LIBDIR)/libsnddiopt.a
+
+LIBSNSDIOPT_SO = $(LIBDIR)/libsnsdiopt.so
+LIBSNSDIOPT_A  = $(LIBDIR)/libsnsdiopt.a
+
+SNADIOPT_EXAMPLES_DIR = $(top_srcdir)/snadiopt/examples
+
+SNADIOPT_TOPDIR  = $(top_srcdir)/snadiopt
+SNADIOPT_SRCDIR  = $(top_srcdir)/snadiopt/lib_src
+SNADIOPT_OBJDIR  = $(top_builddir)/snadiopt/lib_src
+AD_COMMON_SRCDIR = $(top_srcdir)/snadiopt/common_lib_src
+AD_COMMON_OBJDIR = $(top_builddir)/snadiopt/common_lib_src
+SNADIOPT_PERLDIR = $(top_srcdir)/snadiopt/perl_src
+
+SNADIOPT_GEN      = $(AD_COMMON_SRCDIR)/ad.f \
+					$(AD_COMMON_SRCDIR)/mtx.f \
+					$(SNADIOPT_SRCDIR)/nlp.f
+SNADIOPT_DENSE    = $(AD_COMMON_SRCDIR)/dad.f $(SNADIOPT_SRCDIR)/daduserfg.f
+SNADIOPT_SPARSE   = $(AD_COMMON_SRCDIR)/sad.f $(SNADIOPT_SRCDIR)/saduserfg.f
+SNADIOPT_SNADFUN  = $(AD_COMMON_SRCDIR)/sn05adwrp.f
+
+SNADIOPT_GENOBJ      = $(AD_COMMON_OBJDIR)/ad.o \
+					$(AD_COMMON_OBJDIR)/mtx.o \
+					$(SNADIOPT_OBJDIR)/nlp.o
+SNADIOPT_DENSEOBJ    = $(AD_COMMON_OBJDIR)/dad.o $(SNADIOPT_OBJDIR)/daduserfg.o
+SNADIOPT_SPARSEOBJ   = $(AD_COMMON_OBJDIR)/sad.o $(SNADIOPT_OBJDIR)/saduserfg.o
+SNADIOPT_SNADFUNOBJ  = $(AD_COMMON_OBJDIR)/sn05adwrp.o
+
+all: @all_snadiopt@
+install: @install_snadiopt@
+clean: snadiopt_clean
+veryclean: snadiopt_veryclean
+distclean: snadiopt_distclean
+
+all_snadiopt: all_snadiopt_libs all_snadiopt_perl all_snadiopt_examples
+snadiopt_clean: snadiopt_libs_clean snadiopt_perl_clean
+snadiopt_veryclean: snadiopt_libs_veryclean snadiopt_perl_veryclean
+snadiopt_distclean: snadiopt_libs_veryclean snadiopt_perl_distclean \
+					snadiopt_examples_distclean
+
+snadiopt_distclean:
+	-rm -f $(top_builddir)/lib/snadiopt/make_defaults
+	-rmdir $(top_builddir)/lib/snadiopt
+	-rm -f $(SNADIOPT_TOPDIR)/*~
+
+install_snadiopt: install_snadiopt_libs install_snadiopt_perl
+	$(INSTALL) -d $(libdir)/snadiopt
+	$(INSTALL)  lib/snadiopt/make_defaults $(libdir)/snadiopt
+
+$(SNADIOPT_TOPDIR)/config.status:  $(SNADIOPT_TOPDIR)/configure
+	cd $(SNADIOPT_TOPDIR); config.status --recheck
+
+$(SNADIOPT_TOPDIR)/Submakefile: $(SNADIOPT_TOPDIR)/Submakefile.in \
+  $(SNADIOPT_TOPDIR)/config.status
+	cd $(SNADIOPT_TOPDIR); config.status
+
+#######################
+# LIBS section
+#######################
+
+ifeq ($(enable_shared),yes)
+all_snadiopt_libs: all_snadiopt_shared_libs all_snadiopt_static_libs
+install_snadiopt_libs: install_snadiopt_shared_libs \
+	install_snadiopt_static_libs
+else
+all_snadiopt_libs: all_snadiopt_static_libs
+install_snadiopt_libs: install_snadiopt_static_libs
+endif
+
+all_snadiopt_shared_libs:  $(SNADIOPT_OBJDIR) $(AD_COMMON_OBJDIR) \
+	$(LIBSNDDIOPT_SO) $(LIBSNSDIOPT_SO)
+
+all_snadiopt_static_libs:  $(SNADIOPT_OBJDIR) $(AD_COMMON_OBJDIR) \
+	$(LIBSNDDIOPT_A) $(LIBSNSDIOPT_A)
+
+install_snadiopt_shared_libs: all_snadiopt_shared_libs
+	$(INSTALL) -d $(libdir)
+	$(INSTALL) $(LIBSNDDIOPT_SO) $(LIBSNSDIOPT_SO) $(libdir)
+
+install_snadiopt_static_libs: all_snadiopt_static_libs
+	$(INSTALL) -d $(libdir)
+	$(INSTALL) $(LIBSNDDIOPT_A) $(LIBSNSDIOPT_A) $(libdir)
+	$(RANLIB) $(libdir)/libsnddiopt.a
+	$(RANLIB) $(libdir)/libsnsdiopt.a
+
+$(LIBSNDDIOPT_SO): $(SNADIOPT_DENSEOBJ) $(SNADIOPT_GENOBJ) \
+                   $(SNPRINT_O) $(SNOPTAD_O) $(SNADIOPT_SNADFUNOBJ)
+	$(INSTALL) -d $(LIBDIR)
+	$(LD) $(LD_SOFLAGS) -o $@ $^
+
+$(LIBSNDDIOPT_A): $(SNADIOPT_DENSEOBJ) $(SNADIOPT_GENOBJ) \
+                  $(SNPRINT_O) $(SNOPTAD_O) $(SNADIOPT_SNADFUNOBJ)
+	$(INSTALL) -d $(LIBDIR)
+	ar cru $@ $^
+	$(RANLIB) $@
+
+$(LIBSNSDIOPT_SO): $(SNADIOPT_SPARSEOBJ) $(SNADIOPT_GENOBJ) \
+                   $(SNPRINT_O) $(SNOPTAD_O) $(SNADIOPT_SNADFUNOBJ)
+	$(INSTALL) -d $(LIBDIR)
+	$(LD) $(LD_SOFLAGS) -o $@ $^
+
+$(LIBSNSDIOPT_A): $(SNADIOPT_SPARSEOBJ) $(SNADIOPT_GENOBJ) \
+                  $(SNPRINT_O) $(SNOPTAD_O) $(SNADIOPT_SNADFUNOBJ)
+	$(INSTALL) -d $(LIBDIR)
+	ar cru $@ $^
+	$(RANLIB) $@
+
+$(SNADIOPT_OBJDIR):
+	$(INSTALL) -d $(SNADIOPT_OBJDIR)
+
+$(AD_COMMON_OBJDIR):
+	$(INSTALL) -d $(SNADIOPT_OBJDIR)
+
+snadiopt_libs_clean:
+	-rm -f $(SNADIOPT_OBJDIR)/*.o
+	-rm -f $(AD_COMMON_OBJDIR)/*.o
+
+snadiopt_libs_veryclean: snadiopt_clean
+	-rm -f $(LIBSNSDIOPT_SO) $(LIBSNDDIOPT_SO) \
+		   $(LIBSNSDIOPT_A) $(LIBSNDDIOPT_A)
+
+snadiopt_libs_distclean: snadiopt_veryclean
+	-rm -f $(SNADIOPT_SRCDIR)/*~ $(AD_COMMON_SRCDIR)/*~
+
+$(SNADIOPT_OBJDIR)/%.o : $(SNADIOPT_SRCDIR)/%.f
+	$(COMPILE.f) $^ -o $@
+
+$(AD_COMMON_OBJDIR)/%.o : $(AD_COMMON_SRCDIR)/%.f
+	$(COMPILE.f) $^ -o $@
+
+#########################
+# Perl section
+#########################
+all_snadiopt_perl: $(BINDIR)/snadiopt.pl $(LIBDIR)/snadiopt/FortranUtils.pm
+all_snadiopt_perl: $(MANDIR)/man1/snadiopt.pl.1
+
+SNADIOPT_PERL_SCRIPT  = $(SNADIOPT_PERLDIR)/script
+
+$(BINDIR)/snadiopt.pl: $(SNADIOPT_PERL_SCRIPT)/snadiopt.pl
+	$(INSTALL) -d $(BINDIR)
+	cp -p $(SNADIOPT_PERL_SCRIPT)/snadiopt.pl $(BINDIR)
+	$(PERL) -MExtUtils::MakeMaker -e "MY->fixin(shift)" \
+	    $(BINDIR)/snadiopt.pl
+
+$(LIBDIR)/snadiopt/FortranUtils.pm:  $(SNADIOPT_PERLDIR)/FortranUtils.pm
+	$(INSTALL) -d $(LIBDIR)/snadiopt
+	$(INSTALL) $(SNADIOPT_PERLDIR)/FortranUtils.pm $(LIBDIR)/snadiopt
+
+$(MANDIR)/man1/snadiopt.pl.1: $(SNADIOPT_PERL_SCRIPT)/snadiopt.pl
+	$(INSTALL) -d $(MANDIR)/man1
+	pod2man $(SNADIOPT_PERL_SCRIPT)/snadiopt.pl > \
+	   $(MANDIR)/man1/snadiopt.pl.1
+
+install_snadiopt_perl: all_snadiopt_perl
+	$(INSTALL) -d $(libdir)/snadiopt
+	$(INSTALL) $(LIBDIR)/snadiopt/FortranUtils.pm $(libdir)/snadiopt
+	$(INSTALL) -d $(mandir)/man1
+	$(INSTALL) $(MANDIR)/man1/snadiopt.pl.1 $(mandir)/man1
+	$(INSTALL) -d $(bindir)
+	$(INSTALL) $(BINDIR)/snadiopt.pl $(bindir)
+
+snadiopt_perl_clean:
+
+snadiopt_perl_veryclean:
+	-rm -f $(BINDIR)/snadiopt.pl
+	-rm -f $(LIBDIR)/snadiopt/FortranUtils.pm
+	-rm -f $(MANDIR)/man1/snadiopt.pl.1
+
+snadiopt_perl_distclean: snadiopt_perl_veryclean
+
+#########################
+# Examples section
+#########################
+all_snadiopt_examples: all_snadiopt_libs all_snadiopt_perl
+	current_dir=$$PWD;\
+	cd $(top_builddir); \
+	local_builddir=$$PWD; \
+	cd $$current_dir; \
+	cd $(SNADIOPT_EXAMPLES_DIR); \
+	$(PERL) $$local_builddir/bin/snadiopt.pl -refresh-makefile -o hs47 hs47.f; \
+	$(MAKE) all
+
+snadiopt_examples_distclean:
+	cd $(SNADIOPT_EXAMPLES_DIR); \
+	if [ -r GNUmakefile ]; then $(MAKE) distclean; fi

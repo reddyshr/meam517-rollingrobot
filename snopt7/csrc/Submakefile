@@ -1,0 +1,115 @@
+#-----------------------------------------------------------------------
+# Submakefile :: csrc
+#-----------------------------------------------------------------------
+
+SQOPT_C    = sqopt    snoptq   sq02lib  sn04wrap sn10mach          \
+             sn12ampl sn17util sn20amat sn25bfac sn27lu            \
+             sn30spec sn35mps  sn37wrap sn40bfil sn50lp   sn55qp   \
+             sn56qncg sn57qopt sn65rmod $(f2cdummy)
+
+SNOPT_C    = sqopt    snopta   snoptb   snoptc   snoptq   npopt    \
+             sq02lib  sn02lib  np02lib  sn04wrap                   \
+             sn05wrpa sn05wrpb sn05wrpc sn05wrpn sn10mach          \
+             sn12ampl sn17util sn20amat sn25bfac sn27lu            \
+             sn30spec sn35mps  sn37wrap sn40bfil sn50lp   sn55qp   \
+             sn56qncg sn57qopt sn60srch sn65rmod sn70nobj sn80ncon \
+             sn82qn   sn83bfgs sn87sopt $(f2cdummy)
+
+SNFILE_C   = snfilewrapper
+
+ifeq ($(blas),yes)
+  CBLAS_LO   =
+else
+  CBLAS_LO   = $(BLAS:%=$(F2COBJDIR)/%.lo)
+endif
+
+SNFILE_C_LO  = $(SNFILE_C:%=$(F2COBJDIR)/%.lo)
+SNPRINT_C_LO = $(SNPRINT:%=$(F2COBJDIR)/%.lo)
+SNOPT_C_LO   = $(SNOPT_C:%=$(F2COBJDIR)/%.lo)
+SQOPT_C_LO   = $(SQOPT_C:%=$(F2COBJDIR)/%.lo)
+
+#-----------------------------------------------------------------------
+
+SNOPT_CLIBS     = $(SNOPTLIBS)_f2c
+SQOPT_CLIBS     = $(SQOPTLIBS)_f2c
+
+SNOPT_CLIBS_LA  = $(SNOPT_CLIBS:%=$(LIBDIR)/lib%.la)
+SNOPT_CLIBS_INS = $(SNOPT_CLIBS:%=$(libdir)/lib%.la)
+
+SQOPT_CLIBS_LA  = $(SQOPT_CLIBS:%=$(LIBDIR)/lib%.la)
+SQOPT_CLIBS_INS = $(SQOPT_CLIBS:%=$(libdir)/lib%.la)
+
+CINCLUDE     = $(F2CINCLUDE)
+CLIBRARY     = -L$(LIBDIR) -l$(SNOPT_CLIBS) $(blasLIB) $(F2CLIBRARY) $(FCLIBS)
+
+#-----------------------------------------------------------------------
+
+all: all_snopt_c all_sqopt_c
+c: all_snopt_c all_sqopt_c
+install: install_snopt_c install_sqopt_c
+uninstall: uninstall_snopt_c uninstall_sqopt_c
+clean: clean_snopt_c
+veryclean: veryclean_snopt_c veryclean_sqopt_c
+distclean: veryclean_snopt_c veryclean_sqopt_c
+
+#-----------------------------------------------------------------------
+
+all_snopt_c: all_f2c f2csrc_objdir $(LIBDIR) $(SNOPT_CLIBS_LA)
+
+
+f2csrc_objdir: $(top_builddir)
+	if [ ! -d $(F2COBJDIR) ]; then mkdir $(F2COBJDIR); fi
+
+
+install_snopt_c: all_snopt_c
+	$(INSTALL_LIB) $(SNOPT_CLIBS_LA) $(libdir)
+	$(FINISH) $(libdir)
+
+uninstall_snopt_c:
+	$(UNINSTALL) rm -f $(SNOPT_CLIBS_INS)
+
+$(SNOPT_CLIBS_LA): $(CBLAS_LO) $(SNPRINT_C_LO) $(SNOPT_C_LO) $(SNFILE_C_LO)
+	$(LINK_C) $(CFLAGS) -o $@ $^ -rpath $(libdir)
+
+#-----------------------------------------------------------------------
+
+all_sqopt_c: all_f2c $(F2COBJDIR) $(LIBDIR) $(SQOPT_CLIBS_LA)
+
+install_sqopt_c: all_sqopt_c
+	$(INSTALL_LIB) $(SQOPT_CLIBS_LA) $(libdir)
+	$(FINISH) $(libdir)
+
+uninstall_sqopt_c:
+	$(UNINSTALL) rm -f $(SQOPT_CLIBS_INS)
+
+$(SQOPT_CLIBS_LA): $(CBLAS_LO) $(SNPRINT_C_LO) $(SQOPT_C_LO) $(SNFILE_C_LO)
+	$(LINK_C) $(CFLAGS) -o $@ $^ -rpath $(libdir)
+
+#-----------------------------------------------------------------------
+
+$(F2COBJDIR)/%.lo: $(F2CSRCDIR)/%.c
+	$(COMPILE_C) $(CFLAGS) $(CINCLUDE) -c $< -o $@
+
+$(F2CSRCDIR)/%.c: $(SRCDIR)/%.f
+	$(F2C) $(F2COPTS) $(SRCDIR)/$*.f
+	mv $(top_builddir)/$*.c $@
+
+#-----------------------------------------------------------------------
+
+clean_snopt_c:
+	$(CLEAN) rm -f $(F2COBJDIR)/*.lo
+
+veryclean_snopt_c: clean_snopt_c
+	$(CLEAN) rm -f $(SNOPT_CLIBS_LA)
+
+veryclean_sqopt_c: clean_snopt_c
+	$(CLEAN) rm -f $(SQOPT_CLIBS_LA)
+
+#-----------------------------------------------------------------------
+
+.PRECIOUS: $(F2CSRCDIR)/%.c
+
+.PHONY: all_snopt_c all_sqopt_c f2csrc_objdir \
+        install_snopt_c uninstall_snopt_c \
+        install_sqopt_c uninstall_sqopt_c clean_snopt_c \
+        veryclean_snopt_c veryclean_sqopt_c

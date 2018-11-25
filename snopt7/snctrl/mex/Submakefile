@@ -1,0 +1,43 @@
+#-----------------------------------------------------------------------
+# Submakefile :: snctrl :: mex
+#-----------------------------------------------------------------------
+
+sncmexLIBS     = sncmex$(VERSION)
+sncmexLIBS_A   = $(sncmexLIBS:%=$(LIBDIR)/lib%.a)
+sncmexLIBS_INS = $(sncmexLIBS:%=$(libdir)/lib%.la)
+
+#-----------------------------------------------------------------------
+
+all: sncmex
+clean: clean_mex
+veryclean: veryclean_mex
+distclean: veryclean_mex
+
+#-----------------------------------------------------------------------
+
+sncmex: mod_dir snctrlmex
+
+
+$(snmexLIBS_A): libsnopt7.a
+	$(LINK_F) $(FCFLAGS) -o $@ $^
+
+snoptmex: $(snmexLIBS_A)
+	$(MEX) -v $(MEXFLAGS) $(MODINC) $(MEX_SRCDIR)/ctmex.F90 \
+        $(MEX_SRCDIR)/snctrlmex.F90 \
+        FFLAGS='$$FFLAGS $(MODLOC)' LD='$(FC)' \
+	LDFLAGS='$$LDFLAGS $(blasLIB)' \
+        $(snmexLIBS_A) -output $@ -outdir $(MATDIR)
+	@echo "SNCTRL mex files installed in ${MATDIR}"
+
+#-----------------------------------------------------------------------
+
+clean_mex:
+	$(CLEAN) rm -f $(MEX_SRCDIR)/*.lo
+
+veryclean_mex: clean_mex
+	rm -f $(MODDIR)/*.mod
+	$(CLEAN) rm -f $(MATDIR)/snctrlmex.*
+
+#-----------------------------------------------------------------------
+
+.PHONY: snmex sqmex clean_mex veryclean_mex

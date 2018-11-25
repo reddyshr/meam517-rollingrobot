@@ -1,0 +1,64 @@
+#-----------------------------------------------------------------------
+# Submakefile :: examples
+#-----------------------------------------------------------------------
+
+_EXE =      sntoya        sntoyb       sntoyc        snchka              \
+           snmaina       snmainb      snmainc        slmain       npmain \
+           snfeasa       snfeasb                                         \
+             hs47a         hs47b        hs47c                            \
+          hs47Moda      hs47Modb     hs47Modc                            \
+       hs47ModInfa   hs47ModInfb  hs47ModInfc       meyer3b             \
+        snmemtesta    snmemtestb      catmixa       catmixb      catmixc \
+           testera      testbedc                                  tester \
+           t1dieta       t1dietb    t2bananaa     t2bananab         t3qp \
+          t4mannea      t4manneb     t4mannec      t5weapon       t6wood \
+        t7etamacro       calvara      springa       springb              \
+          springia      springib                                         \
+              maxi      lpsolver    slmainMPS        sqmain       sqmain2\
+         sqmainMPS          hs76      hs76Max    hs76ModInf  hs76QNModInf\
+         hs118
+EXAMPLES_EXE = $(_EXE:%=$(EX_OBJDIR)/%)
+
+#-----------------------------------------------------------------------
+clean: clean_examples
+veryclean: veryclean_examples
+distclean: veryclean_examples
+
+#-----------------------------------------------------------------------
+
+examples: lib_snopt install example_dir $(EXAMPLES_EXE)
+ifneq ($(EX_SRCDIR),$(EX_OBJDIR))
+	@-cp -f ${EX_SRCDIR}/*.spc ${EX_OBJDIR}/ > /dev/null 2>&1
+	@-cp -f ${EX_SRCDIR}/*.mps ${EX_OBJDIR}/ > /dev/null 2>&1
+endif
+
+example_dir: $(top_builddir)
+	if [ ! -d $(EX_OBJDIR) ]; then mkdir $(EX_OBJDIR); fi
+
+$(EX_OBJDIR)/%: $(EX_OBJDIR)/%.lo
+	$(LINK_F) $(FCFLAGS) $^ -o $@  $(SNOPT_LIBS)
+
+$(EX_OBJDIR)/%.lo : $(EX_SRCDIR)/%.f
+	$(COMPILE_F) $(FCFLAGS) -c $< -o $@
+
+#-----------------------------------------------------------------------
+
+clean_examples:
+	$(CLEAN) rm -f $(EX_OBJDIR)/*.lo
+
+veryclean_examples: clean_examples
+	$(CLEAN) rm -f $(EXAMPLES_EXE)
+	$(CLEAN) rm -f $(EX_OBJDIR)/*.out
+	$(CLEAN) rm -f $(EX_OBJDIR)/*.newbasis
+ifneq ($(EX_SRCDIR),$(EX_OBJDIR))
+	$(CLEAN) rm -f $(EX_OBJDIR)/*.spc
+	$(CLEAN) rm -f $(EX_OBJDIR)/*.mps
+endif
+
+
+
+#-----------------------------------------------------------------------
+
+.PRECIOUS: $(EX_OBJDIR)/%.lo
+
+.PHONY: examples clean_examples veryclean_examples

@@ -1,0 +1,46 @@
+#-----------------------------------------------------------------------
+# Submakefile :: cexamples
+#-----------------------------------------------------------------------
+
+F2CEXAMPLES     = csntoya toyfunction
+F2CEXAMPLES_LO  = $(F2CEXAMPLES:%=$(F2CEX_OBJDIR)/%.lo)
+F2CEXAMPLES_EXE = $(F2CEXAMPLES:%=$(F2CEX_OBJDIR)/%)
+
+#-----------------------------------------------------------------------
+
+examples: examples_c
+clean: clean_cexamples
+veryclean: veryclean_cexamples
+distclean: veryclean_cexamples
+
+#-----------------------------------------------------------------------
+
+examples_c: cex_objdir all_snopt_c $(F2CEX_OBJDIR)/csntoya
+ifneq ($(F2CEX_SRCDIR),$(F2CEX_OBJDIR))
+	@-cp -f ${F2CEX_SRCDIR}/*.spc ${F2CEX_OBJDIR}/ > /dev/null 2>&1
+endif
+
+cex_objdir: $(top_builddir)
+	if [ ! -d $(F2CEX_OBJDIR) ]; then mkdir $(F2CEX_OBJDIR); fi
+
+$(F2CEX_OBJDIR)/csntoya: $(F2CEXAMPLES_LO)
+	$(LINK_C) $(CFLAGS) $(CINCLUDE) $^ -o $@ $(LDFLAGS) $(CLIBRARY)
+
+$(F2CEX_OBJDIR)/%.lo : $(F2CEX_SRCDIR)/%.c
+	$(COMPILE_C) $(CFLAGS) $(CINCLUDE) -c $< -o $@
+
+#-----------------------------------------------------------------------
+
+clean_cexamples:
+	$(CLEAN) rm -f $(F2CEX_OBJDIR)/*.lo
+
+veryclean_cexamples: clean_cexamples
+	$(CLEAN) rm -f $(F2CEXAMPLES_EXE)
+	$(CLEAN) rm -f $(F2CEX_OBJDIR)/*.out
+ifneq ($(F2CEX_SRCDIR),$(F2CEX_OBJDIR))
+	$(CLEAN) rm -f $(F2CEX_OBJDIR)/*.spc
+endif
+
+#-----------------------------------------------------------------------
+
+.PHONY: all_cexamples clean_cexamples veryclean_cexamples

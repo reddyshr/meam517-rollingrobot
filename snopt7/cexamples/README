@@ -1,0 +1,86 @@
+cexamples/README   Josh D. Griffin                         23 November 2002
+                   Elizabeth Wong                          24 July     2014
+
+===========================================================================
+USING THE (F2C'd) SNOPT C INTERFACE
+===========================================================================
+0) This directory contains files for the F2C'd version of SNOPT.
+   The files for the newer (no-F2C) C/C++ interfaces are located in
+   $SNOPT/interfaces.
+
+1) Assuming there were no problems making the executables, to run
+   a simple example "csntoya" simply perform the following in the
+   directory $SNOPT/cexamples:
+
+      % ./csntoya
+
+  This should run snOptA on the problem sntoya defined in the files
+  toyusrfun.h and toyusrfun.c.  csntoya solves a small problem twice,
+  the first time without derivatives and the second time with derivatives.
+
+2) The primary purpose of the examples of $SNOPT/cexamples
+   is to illustrate how to call snopta_  as a C function.  csntoya links
+   with libsnopt7_c.so (or libsnopt7_c.a), which are object libraries
+   composed entirely of c routines.  The user does not need a Fortran
+   compiler to use SNOPT.
+
+3) An important point to keep in mind is that all the routines in
+   libsnopt7_c.a have been generated using f2c.  Thus the values
+   used for
+        ObjRow, iAfun, jAvar, A, and  iGfun, jGvar, G
+   must use Fortran style for indexing arrays.  In other words, although
+   all array arguments of snopta_{} will be indexed starting at 0, there
+   contents must be based on starting the indexing starts at 1.
+   This is a subtle but important point.
+
+   Example:
+      Consider the problem
+
+       min  x(2)
+
+       subject to   x(1)^2 + 4x(2)^2      <= 4,
+                    (x(1) - 2)^2 + x(2)^2 <= 5,
+                                        x >= 0.
+
+    With the vector F(x) of problem functions defined by:
+
+     F(x) =  x(2)
+             x(1)^2 + 4x(2)^2
+            (x(1) - 2)^2 + x(2)^2
+
+   Then in C, we have
+     F[0] = x[1];
+     F[1] = x[0]*x[0] + 4*x[1]*x[1];
+     F[2] = (x[0] - 2)*(x[0] - 2) + x[1]*x[1];
+
+   but the index of the objective row is
+
+     ObjRow = 1; /* not 0 */
+
+   Similarly, (assuming no linear variables are indicated)
+
+     iGfun[0] = 1; jGvar[0] = 1;  G[0] = 0;
+     iGfun[1] = 1; jGvar[1] = 2;  G[1] = 1;
+     iGfun[2] = 2; jGvar[2] = 1;  G[2] = 2*x[0];
+     iGfun[3] = 2; jGvar[3] = 2;  G[3] = 8*x[1];
+     iGfun[4] = 3; jGvar[4] = 1;  G[4] = 2*(x[0] - 2);
+     iGfun[5] = 3; jGvar[5] = 2;  G[5] = 2*x[1];
+
+   Note that the indices of the arrays iGfun, jGvar and G start at 0
+   (as is standard in C), however, the coordinates of the elements
+   of the Jacobian that they hold start at 1 (as in Fortran).
+
+4) A C wrapper has been provided to help with the opening and closing of
+   files, Fortran style.
+
+   To open or close the print, summary and spec files,  follow the steps
+   outlined inside csntoya.c.
+
+5) Before the routines in  libsnopt7_c.so (or libsnopt7_c.a) can be used,
+   they must be declared inside a header file.  The snopt routines
+   called by csntoya.c have been declared inside the header file:
+     snopt.h
+
+6) The functions defining the problems solved by csntoya.c are defined
+   in the files:
+     toyfunction.h and toyfunction.c

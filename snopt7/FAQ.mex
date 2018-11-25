@@ -1,0 +1,73 @@
+README.mex                                                      29 December 2012
+
+Many many days have been spent trying to make this process as simple as possible
+for the user.  Unfortunately, there may be times when the user will need to
+tweak some files to get everything to work.  This file contains a list of
+problems and solutions that may come up when compiling or using the SNOPT Matlab
+mex files.
+
+*------------------------------------------------------------------------------*
+
+Q: I have f2c installed on my machine, but the configure script says it can't
+   find the f2c library.
+
+A: If you're on a machine that has a shared f2c library, then the configure file
+   may fail to find the library because of an undefined reference to MAIN__ in
+   libf2c.so.  You can verify the result of the configure script in config.log.
+
+   If the undefined MAIN__ reference is the cause of this error, you can
+   override the configure script settings.  Modify the appropriate lines in
+   GNUMakefile to point to the correct paths to the headers and libraries of
+   f2c, and set f2cBLD to no.
+
+     F2C          = /path/to/f2c
+     F2COPTS      = -ec -ARw8 -Nn802 -Nq300 -Nx400
+     F2CINCLUDE   = -I/path/to/headers
+     F2CLIBRARY   = /path/to/lib/libf2c.so
+     f2cBLD       = no
+
+   A dummy MAIN__ function has been added to the SNOPT libraries so that the
+   error will not show up in the SNOPT compilation or installation when linking
+   to the f2c library.
+
+*------------------------------------------------------------------------------*
+
+Q: I've successfully compiled all of the libraries and the mex files.  When I
+   run the mex file in matlab, I get an error
+
+     ??? Invalid MEX-file
+     '/Users/elwong/software/snopt7/matlab/snoptcmex.mexmaci64':
+     dlopen(/Users/elwong/software/snopt7/matlab/snoptcmex.mexmaci64, 1):
+
+     Library not loaded: /Users/elwong/lib/libsnopt.0.dylib
+       Referenced from: /Users/elwong/software/snopt7/matlab/snoptcmex.mexmaci64
+       Reason: image not found.
+
+A: You need to do an 'make install'.  The mex file is looking for the libraries
+   in the installation directory (set via --prefix=PATH during the configure
+   stage).
+
+*------------------------------------------------------------------------------*
+
+Q: When I compile the mex files, I get a message about unrecognized options, e.g.,
+
+     gcc: unrecognized option '-no-cpp-precomp'
+     cc1: error: unrecognized command line option "-arch"
+
+         mex: compile of ' "./cmex/dummy.c"' failed.
+
+   what do I do?
+
+A: We use the same compiler that compiled SNOPT to handle the mex files.
+   Sometimes, the preset flags and options for mex provided by MATLAB via
+   mexopts.sh are incompatible with the compiler used to compile SNOPT.  To fix
+   this problem, just modify the mexopts.sh file and remove the offending flags
+   or options.
+
+   Usually there is a local copy of mexopts.sh in ${HOME}/.matlab/R20XXx.  If
+   not, enter the command
+   >> mex -setup
+   at the terminal.  This will create a copy of mexopts.sh in the above
+   mentioned directory.
+
+*------------------------------------------------------------------------------*
