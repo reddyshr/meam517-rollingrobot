@@ -82,17 +82,17 @@ snseti ('Major Iteration limit', 250);
       lb(u_i_inds) = -MaxU;
       ub(u_i_inds) = MaxU;
       
-%       lb(u_i_inds(1)) = 0;
-%       ub(u_i_inds(1)) = 0;
-%       lb(u_i_inds(2)) = 0;
-%       ub(u_i_inds(2)) = 0;
-      
+      lb(u_i_inds(1)) = 0;
+      ub(u_i_inds(1)) = 0;
+      lb(u_i_inds(2)) = 0;
+      ub(u_i_inds(2)) = 0;
+%       
       lb(u_i_inds(4)) = 0;
       ub(u_i_inds(4)) = 0;
       lb(u_i_inds(5)) = 0;
       ub(u_i_inds(5)) = 0;
-      lb(u_i_inds(6)) = 0;
-      ub(u_i_inds(6)) = 0;
+%       lb(u_i_inds(6)) = 0;
+%       ub(u_i_inds(6)) = 0;
 
 
   end

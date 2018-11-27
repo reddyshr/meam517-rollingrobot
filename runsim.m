@@ -81,9 +81,10 @@ function runsim()
     cg3arr = [];
     
     control_des = getContinuousInputTrajectory(u_col, N, dt, STEP);
+    state_des = getContinuousStateTrajectory(x_col, u_col, N, dt, STEP,M,l,r,g,I1,I2,I3);
     control_len = length(control_des);
 
-    save('/home/reddyshr/Desktop/Meam517/meam517-finalproject/trials/trial31good.mat')
+    save('/home/reddyshr/Desktop/Meam517/meam517-finalproject/trials/trial36good.mat')
     
     %%
     close all;
