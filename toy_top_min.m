@@ -23,8 +23,8 @@ snseti ('Major Iteration limit', 250);
   nx = 8;
   nu = 6;
   
-  xgoal = -2.5;
-  ygoal = 0;
+  xgoal = -1;
+  ygoal = 1;
   
   % TODO: Add constraints to Aeq, beq to enforce starting at x_0 and ending
   % at x_f
@@ -38,8 +38,11 @@ snseti ('Major Iteration limit', 250);
   Aeq(1:nx, 1:nx) = eye(nx);
    eq_conds = zeros(nx,nx);
 %  % eq_conds(1:3,1:3) = eye(3);
-   eq_conds(5,5) = 1;
    eq_conds(4,4) = 1;
+   eq_conds(5,5) = 1;
+   eq_conds(6,6) = 1;
+   eq_conds(7,7) = 1;
+   eq_conds(8,8) = 1;
  %  eq_cond(8,8) = 1;
    Aeq(nx+1:end, (end-nu-nx+1):(end-nu)) = eq_conds;
   
@@ -50,12 +53,12 @@ snseti ('Major Iteration limit', 250);
 %   cond(2,4) = 1;
 %   cond(3,5) = -1;
 %   cond(4,5) = 1;
-  cond(5,6) = -1;
-  cond(6,6) = 1;
-  cond(7,7) = -1;
-  cond(8,7) = 1;
-  cond(9,8) = -1;
-  cond(10,8) = 1;
+%   cond(5,6) = -1;
+%   cond(6,6) = 1;
+%   cond(7,7) = -1;
+%   cond(8,7) = 1;
+%   cond(9,8) = -1;
+%   cond(10,8) = 1;
   
 %   cond = [0 0 0 -1 0 0 0 0;
 %           0 0 0 1 0 0 0 0;
@@ -79,13 +82,18 @@ snseti ('Major Iteration limit', 250);
       lb(u_i_inds) = -MaxU;
       ub(u_i_inds) = MaxU;
       
-      lb(u_i_inds(1)) = 0;
-      ub(u_i_inds(1)) = 0;
+%       lb(u_i_inds(1)) = 0;
+%       ub(u_i_inds(1)) = 0;
 %       lb(u_i_inds(2)) = 0;
 %       ub(u_i_inds(2)) = 0;
       
-      lb(u_i_inds(4:end)) = 0;
-      ub(u_i_inds(4:end)) = 0;
+      lb(u_i_inds(4)) = 0;
+      ub(u_i_inds(4)) = 0;
+      lb(u_i_inds(5)) = 0;
+      ub(u_i_inds(5)) = 0;
+      lb(u_i_inds(6)) = 0;
+      ub(u_i_inds(6)) = 0;
+
 
   end
   
@@ -100,6 +108,7 @@ snseti ('Major Iteration limit', 250);
           x_i_inds = (1:nx) + (nx + nu) * (i - 1);
           z0(x_i_inds) = x_0 + (i - 1)*slope;
           z0(u_i_inds(3)) = -0.1;
+          z0(u_i_inds(2)) = 0.1;
       end
   else
       z0 = z_init;

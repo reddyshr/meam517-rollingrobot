@@ -1,4 +1,4 @@
-function [g] = toy_top_obj(z, N, nx, nu, dt, xgoal, ygoal)
+function [g, dG] = toy_top_obj(z, N, nx, nu, dt, xgoal, ygoal)
 %TRAJECTORY_COST(z) computes the cost and cost jacobian.
 %   @param z: vector of decision variables containing the x_i and u_i.
 %   @param N: number of sample points
@@ -33,33 +33,36 @@ for i=1:(N-1)
   
   x_i_diff = x_i - goal_vect;
   x_ip1_diff = x_ip1 - goal_vect;
-  g = g + (dt/2)*(dot(x_i_diff, x_i_diff) + dot(x_ip1_diff, x_ip1_diff) + dot(u_i, u_i) + dot(u_ip1, u_ip1));
+  %g = g + (dt/2)*(dot(x_i_diff, x_i_diff) + dot(x_ip1_diff, x_ip1_diff) + dot(u_i, u_i) + dot(u_ip1, u_ip1));
+   g = g + (dt/2)*(dot(u_i, u_i) + dot(u_ip1, u_ip1));
+  % g = g + (dt/2)*(dot(x_i_diff, x_i_diff) + dot(x_ip1_diff, x_ip1_diff));
    
-%    if (i == 1)
-%        dg_ui = dt*u_i;
-%        dg_uip1 = 2*dt*u_ip1;
-%        
-%    elseif (i == (N - 1))
-%        dg_ui = 2*dt*u_i;
-%        dg_uip1 = dt*u_ip1;
-%        
-%    else 
-%        dg_ui = 2*dt*u_i;
-%        dg_uip1 = 2*dt*u_ip1;
-%        
-%    end
-%    
-%    uiStart = (i-1)*(nx+nu)+1+nx;
-%    uiEnd = uiStart + (nu - 1);
-%    uip1Start = uiStart + (nx + nu);
-%    uip1End = uiEnd + (nx + nu);
-%    
-%    dG(uiStart:uiEnd, 1) = dg_ui;
-%    dG(uip1Start:uip1End, 1) = dg_uip1;
-%        
+   if (i == 1)
+       dg_ui = dt*u_i;
+       dg_uip1 = 2*dt*u_ip1;
+       
+   elseif (i == (N - 1))
+       dg_ui = 2*dt*u_i;
+       dg_uip1 = dt*u_ip1;
+       
+   else 
+       dg_ui = 2*dt*u_i;
+       dg_uip1 = 2*dt*u_ip1;
+       
+   end
+   
+   uiStart = (i-1)*(nx+nu)+1+nx;
+   uiEnd = uiStart + (nu - 1);
+   uip1Start = uiStart + (nx + nu);
+   uip1End = uiEnd + (nx + nu);
+   
+   dG(uiStart:uiEnd, 1) = dg_ui;
+   dG(uip1Start:uip1End, 1) = dg_uip1;
+       
 
     
 end
 
+dG = dG';
 
 end

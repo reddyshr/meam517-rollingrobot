@@ -2,25 +2,25 @@
 function [x_dc, u, z, N, dt, fval, INFO] = top_trajgen(M, I1, I2, I3, r, l, g, z_init, N)
 
    % N = 10;
-    dt = 1.5/N;
+    dt = 0.5/N;
     nx = 8;
     nu = 6;
 
     theta = pi/6;
     p = 72.84;
-    s = 40;
+    s = 10;
 
     % Generalized Coordinates
     %q4 = x, q5 = y
 
     qi = zeros(5,1);
-    %qi(2) = theta;
+   % qi(2) = theta;
 
     % Generalized Speeds
 
     ui = zeros(3,1);
-    %ui(1) = s+p*cos(theta);
-    %u(3) = p*sin(theta);
+   % ui(1) = s+p*cos(theta);
+  %  ui(3) = p*sin(theta);
 
     % Final COnstraints
 

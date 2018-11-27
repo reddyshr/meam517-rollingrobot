@@ -11,9 +11,11 @@ function runsim()
     z_init = 0;
     numOfRuns = 0;
     goAgain = true;
-    N = 10;
-    goalN = 40;
+    N = 30;
+    goalN = 30;
+    convergeCnt = 0;
     
+    beep on;
     noise = load('train');
     
     while (goAgain) 
@@ -27,15 +29,19 @@ function runsim()
          while (~goodResponse)             
              prompt = 'Finish(1) -- Reseed w/ same N(2) -- Reseed w/ N+10(3)?';
              response = 0;
-             %response = input(prompt);
-             if (response == 2 || INFO == 32)
+             response = input(prompt);
+             if (response == 2) %|| INFO == 32)
                  goAgain = true;
                  goodResponse = true;
-             elseif (response == 1 || (INFO == 1 && N == goalN)) 
+             elseif (response == 1) % || (INFO == 1 && N == goalN)) 
                  goAgain = false;
                  goodResponse = true;
                  
-             elseif (response == 3 || (INFO == 1 && N < goalN))
+             elseif (response == 3) % || (INFO == 1 && N < goalN) || (INFO == 3 && N < goalN) ...
+                                   %|| (INFO == 41 && N < goalN))
+%                                  || (INFO == 42 && N < goalN) 
+                                   
+                 beep;
                  goAgain = true;
                  goodResponse = true;
                  ti = linspace(1,N,N);
@@ -50,6 +56,7 @@ function runsim()
                  z_init = z_temp;
              else
                  goodResponse = true;
+                 goAgain = false;
                  disp('Try Again');
              end
          end
@@ -76,15 +83,13 @@ function runsim()
     control_des = getContinuousInputTrajectory(u_col, N, dt, STEP);
     control_len = length(control_des);
 
-    save('/home/reddyshr/Desktop/Meam517/meam517-finalproject/trials/trial11.mat')
+    save('/home/reddyshr/Desktop/Meam517/meam517-finalproject/trials/trial31good.mat')
     
     %%
     close all;
     figure('units','normalized','outerposition',[0 0 1 1]);
 
-    ind = 1;
-    
-    
+    ind = 1;       
     
     while (time < TMAX)
         u(4) = 0;
@@ -154,8 +159,8 @@ function runsim()
 
         plot3([center(1) center(1)+A_bz(1)], [center(2) center(2)+A_bz(2)], [center(3) center(3)+A_bz(3)], 'k');
         hold on;
-        xlim([-3 3]);
-        ylim([-3 3]);
+        xlim([-5 5]);
+        ylim([-5 5]);
         zlim([0 0.5]);
         grid ON;
         plot3([center(1) center(1)+A_bx(1)], [center(2) center(2)+A_bx(2)], [center(3) center(3)+A_bx(3)], 'r');

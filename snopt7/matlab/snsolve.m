@@ -180,14 +180,14 @@ elseif nargin >= 9 && nargin <= 12,
   nonlcon  = checkFun(nonlc,'SNOPT');
 
   narg = nargout(nonlcon);
-  if narg == 4,
+  if narg == 4 || narg == -1,
     [c,ceq,J,Jeq] = nonlcon(x0);
     nonlin_ineq   = size(c,1);
     nonlin_eq     = size(ceq,1);
 
     J = J';  Jeq = Jeq';
 
-  elseif narg == 2 || narg == -1,
+  elseif narg == 2,
     [c,ceq]  = nonlcon(x0);
     nonlin_ineq   = size(c,1);
     nonlin_eq     = size(ceq,1);
@@ -325,7 +325,7 @@ function [F,G] = snfun(x,needF,needG,obj,varargin)
 fobj = []; gobj = [];
 
 if needG > 0,
-  if nargout(obj) == 2,
+  if nargout(obj) == 2 || nargout(obj) == -1,
     [fobj,gobj] = obj(x);
   else
     if needF > 0,
@@ -346,7 +346,7 @@ if nargin == 7,
   jGvar   = varargin{3};
 
   if needG > 0,
-    if nargout(nonlcon) == 4,
+    if nargout(nonlcon) == 4 || nargout(nonlcon) == -1,
       [c,ceq,J,Jeq] = nonlcon(x);
     else
       if needF > 0,

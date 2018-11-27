@@ -18,23 +18,23 @@ function [h_i,dH_i] = dynamics_constraint_with_derivative(x_i, u_i, x_ip1, u_ip1
   % dH = [dh/dx0 dh/du0 dh/dx1 dh/du1]
   % where the partial derivatives are written (dh/dx0)_ij = dh_i/dx0_j
   %dH_i = getdHi(x_i, u_i, x_ip1, u_ip1, dt, M, I1, I2, I3, r, l, g);
-%   delta = 1e-3;
+  delta = 1e-8;
    dH_i = zeros(numel(x_i), 2*(numel(x_i)+numel(u_i)));
-%   for j=1:numel(x_i)
-%       dx = zeros(numel(x_i),1);
-%       dx(j) = delta;
-%       dHx_i_j = dynamics_constraint(x_i + dx, u_i, x_ip1, u_ip1, dt, M, I1, I2, I3, r, l, g) - h_i;
-%       dHx_ip1_j = dynamics_constraint(x_i, u_i, x_ip1 + dx, u_ip1, dt, M, I1, I2, I3, r, l, g) - h_i;
-%       dH_i(:,j) = dHx_i_j/delta;
-%       dH_i(:,j + numel(x_i) + numel(u_i)) = dHx_ip1_j/delta;
-%   end
-%   
-%   for j=1:numel(u_i)
-%       du = zeros(numel(u_i),1);
-%       du(j) = delta;
-%       dHu_i_j = dynamics_constraint(x_i, u_i + du, x_ip1, u_ip1, dt, M, I1, I2, I3, r, l, g) - h_i;
-%       dHu_ip1_j = dynamics_constraint(x_i, u_i, x_ip1, u_ip1 + du, dt, M, I1, I2, I3, r, l, g) - h_i;
-%       dH_i(:,j + numel(x_i)) = dHu_i_j/delta;
-%       dH_i(:,j + numel(x_i) + numel(u_i) + numel(x_ip1)) = dHu_ip1_j/delta;
-%   end
+  for j=1:numel(x_i)
+      dx = zeros(numel(x_i),1);
+      dx(j) = delta;
+      dHx_i_j = dynamics_constraint(x_i + dx, u_i, x_ip1, u_ip1, dt, M, I1, I2, I3, r, l, g) - h_i;
+      dHx_ip1_j = dynamics_constraint(x_i, u_i, x_ip1 + dx, u_ip1, dt, M, I1, I2, I3, r, l, g) - h_i;
+      dH_i(:,j) = dHx_i_j/delta;
+      dH_i(:,j + numel(x_i) + numel(u_i)) = dHx_ip1_j/delta;
+  end
+  
+  for j=1:numel(u_i)
+      du = zeros(numel(u_i),1);
+      du(j) = delta;
+      dHu_i_j = dynamics_constraint(x_i, u_i + du, x_ip1, u_ip1, dt, M, I1, I2, I3, r, l, g) - h_i;
+      dHu_ip1_j = dynamics_constraint(x_i, u_i, x_ip1, u_ip1 + du, dt, M, I1, I2, I3, r, l, g) - h_i;
+      dH_i(:,j + numel(x_i)) = dHu_i_j/delta;
+      dH_i(:,j + numel(x_i) + numel(u_i) + numel(x_ip1)) = dHu_ip1_j/delta;
+  end
 end
