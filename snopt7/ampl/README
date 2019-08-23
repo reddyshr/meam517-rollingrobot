@@ -1,8 +1,0 @@
-This directory contains the standard AMPL interface routines and
-the AMPL interface to SNOPT.
-
-Please follow AMPL's directions to compile.
-
-http://ampl.com/netlib/ampl/solvers/index.html
-
-Last updated: 2017 Feb 28
